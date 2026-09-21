@@ -1,0 +1,13 @@
+=== Unit Tests ===
+Test Suites: 2 passed, 2 total
+Tests:       8 passed, 8 total
+Time:        0.241 s
+
+=== Integration Tests ===
+Test Suites: 1 passed, 1 total
+Tests:       3 passed, 3 total
+Time:        0.196 s
+
+=== Health Check ===
+GET http://localhost:3000/health
+{"status":"ok"}
