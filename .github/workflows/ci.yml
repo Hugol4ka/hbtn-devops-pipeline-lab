@@ -113,7 +113,7 @@ jobs:
           context: .
           push: true
           tags: |
-            ghcr.io/${{ env.IMAGE_NAME }}:${{ github.sha }}
-            ghcr.io/${{ env.IMAGE_NAME }}:latest
+            ghcr.io/${{ github.repository }}:${{ github.sha }}
+            ghcr.io/${{ github.repository }}:latest
           cache-from: type=gha
           cache-to: type=gha,mode=max
