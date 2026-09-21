@@ -82,3 +82,4 @@ Later tasks extend the same workflow with dependency caching, JUnit artifacts, a
 ## License
 
 This lab is distributed under the MIT License. See `LICENSE`.
+
