@@ -52,13 +52,30 @@ jobs:
         with:
           node-version: '20'
 
+      - name: Cache npm dependencies
+        uses: actions/cache@v4
+        with:
+          path: ~/.npm
+          key: ${{ runner.os }}-npm-${{ hashFiles('**/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-npm-
+
       - name: Install dependencies
         run: npm ci
 
-      - name: Run the unit tests
-        run: npm run test:unit
+      - name: Run lint
+        run: npm run lint
 
-      - name: Run the integration tests
+      - name: Run tests
         env:
           DATABASE_URL: postgres://pipeline:pipeline@localhost:5432/pipeline
-        run: npm run test:integration
+          JEST_JUNIT_OUTPUT_DIR: ./reports
+        run: npm test -- --reporters=default --reporters=jest-junit
+
+      - name: Upload test reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-reports
+          path: reports/
+          retention-days: 7
