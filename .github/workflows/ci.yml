@@ -117,3 +117,35 @@ jobs:
             ghcr.io/${{ github.repository }}:latest
           cache-from: type=gha
           cache-to: type=gha,mode=max
+  deploy:
+    name: Deploy to Staging
+    needs: build
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+
+    steps:
+      - name: Trigger Render deploy
+        run: |
+          curl -f -X POST "https://api.render.com/v1/services/${{ secrets.RENDER_SERVICE_ID }}/deploys" \
+            -H "Authorization: Bearer ${{ secrets.RENDER_API_KEY }}" \
+            -H "Content-Type: application/json" \
+            -d '{"clearCache":"do_not_clear"}'
+
+      - name: Verify staging health and database
+        env:
+          STAGING_URL: ${{ vars.STAGING_URL }}
+        run: |
+          max_attempts=20
+          delay=15
+          for attempt in $(seq 1 "$max_attempts"); do
+            health=$(curl -s -o /dev/null -w '%{http_code}' --max-time 10 "$STAGING_URL/health" || true)
+            items=$(curl -s -o /dev/null -w '%{http_code}' --max-time 10 "$STAGING_URL/items" || true)
+            echo "Attempt $attempt/$max_attempts: /health=$health /items=$items"
+            if [ "$health" = "200" ] && [ "$items" = "200" ]; then
+              echo "Staging is healthy and can query PostgreSQL."
+              exit 0
+            fi
+            sleep "$delay"
+          done
+          echo "Staging did not become healthy after $max_attempts attempts."
+          exit 1
